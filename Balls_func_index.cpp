@@ -26,7 +26,7 @@ void MovingObject()
 
     while (!txGetAsyncKeyState (VK_ESCAPE))
         {
-        DrawObject(x1, y1, vx1, vy1, TX_LIGHTGREEN, TX_GREEN);
+        DrawObject (x1, y1, vx1, vy1, TX_LIGHTGREEN, TX_GREEN);
         DrawObject (x2, y2, vx2, vy2, TX_RED, TX_BLUE);
         DrawObject (x3, y3, vx3, vy3, TX_LIGHTCYAN, TX_CYAN);
 
