@@ -67,6 +67,7 @@ void DrawObject (int x, int y, int vx, int vy, int a, int b, int radius)
         }
     //txLine   (x, y, x + vx*7, y + vy*7);
     }
+
 void Fon()
     {
     txSetFillColor (TX_BLACK);
@@ -106,7 +107,6 @@ void PhysicsObject (int* x, int* y, int* vx, int* vy, int ax, int ay, int dt, in
         *y  = 0 + *radius;
         }
     }
-
 
 void ControlObject (int* vx, int* vy)
     {
