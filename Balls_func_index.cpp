@@ -1,14 +1,22 @@
 #include "TXLib.h"
 #include <cmath>
 
+
+struct Ball
+   {
+    double  x,  y,
+           vx, vy;
+    int radius;
+    };
+
 void MovingObject();
-void DrawObject       (float x, float y, float vx, float vy, int a, int b, int radius);
-void PhysicsObject    (float* x, float* y, float* vx, float* vy, float ax, float ay, int dt, int radius);
-void ControlObject    (float* vx, float* vy);
-void ControlCollision (float* x1, float* y1, float* x2, float* y2,
-                       float* vx1, float* vy1, float* vx2, float* vy2, int radius, int dt, int* collisions);
-float Distance        (float x1, float y1, float x2, float y2);
-void OutputScore      (int* collisions);
+void DrawObject        (Ball  ball);
+void PhysicsObject     (Ball* ball, double ax, double ay, int dt);
+void ControlObject     (Ball* ball1);
+void ControlCollision  (Ball* ball1, Ball* ball2, int dt, int* collisions);
+double Distance        (double x1, double y1, double x2, double y2);
+void OutputScore       (int  collisions);
+void OutputCoordinates (Ball ball1, Ball ball2);
 
 
 int main()
@@ -20,33 +28,37 @@ int main()
     return 0;
     }
 
+
 void MovingObject()
     {
     HDC  background_Cartoon = txLoadImage ("bush.bmp");
 
-    float x1 =   0, y1 = 0, vx1 = 5 + rand() % 10, vy1 = 5 + rand() % 10, ax1 = 1, ay1 = 0;
+    Ball ball1 = {10, 10, 5 + rand() % 10, 5 + rand() % 10, 55};
 
-    float x2 = 150, y2 = 0, vx2 = 5 + rand() % 10, vy2 = 5 + rand() % 10, ax2 = 1, ay2 = 0;
+    Ball ball2 = {20, 20, 5 + rand() % 10, 5 + rand() % 10, 50};
 
-    int dt = 1, radius = 55, collisions  = 0;
+    int dt = 1,  collisions  = 0;
+
+    double ax = 0, ay = 0;
 
     while (!txGetAsyncKeyState (VK_ESCAPE))
         {
         txBitBlt  (txDC(), 0, 0, 800, 600, background_Cartoon, 0, 0);
 
+        DrawObject (ball1);
+        DrawObject (ball2);
 
-        DrawObject (x1, y1, vx1, vy1, 100, 200, radius);
-        DrawObject (x2, y2, vx2, vy2, 200, 175, radius);
 
+        PhysicsObject (&ball1, ax, ay, dt);
+        PhysicsObject (&ball2, ax, ay, dt);
 
-        PhysicsObject (&x1, &y1, &vx1, &vy1, ax1, ay1, dt, radius);
-        PhysicsObject (&x2, &y2, &vx2, &vy2, ax2, ay2, dt, radius);
+        ControlCollision (&ball1, &ball2, dt, &collisions);
 
-        ControlCollision (&x1, &y1, &x2, &y2, &vx1, &vy1, &vx2, &vy2, radius, dt, &collisions);
+        ControlObject (&ball1);
 
-        ControlObject (&vx1, &vy1);
+        OutputScore (collisions);
 
-        OutputScore (&collisions);
+        OutputCoordinates (ball1, ball2);
 
         txSleep(20);
         }
@@ -54,117 +66,140 @@ void MovingObject()
     txDeleteDC (background_Cartoon);
     }
 
-void DrawObject (float x, float y, float vx, float vy, int a, int b, int radius)
+void DrawObject (Ball ball)
     {
-    for (int i = 1; i <= radius; i++)
+    int a = 100, b = 200;
+
+    for (int i = 1; i <= ball.radius; i++)
         {
         txSetColor     (RGB (a + i, b + i/2, b + i/2), 2);
         txSetFillColor (RGB (a + i, b + i/2, b + i/2));
-        txCircle (x, y, radius - i);
+        txCircle (ball.x, ball.y, ball.radius - i);
         }
-    //txLine   (x, y, x + vx*7, y + vy*7);
+    //txLine   (ball.x, ball.y, ball.x + (ball.vx)*7, ball.y + (ball.vy)*7);
     }
 
-float Distance (float x1, float y1, float x2, float y2)
+double Distance (double x1, double y1, double x2, double y2)
     {
-    float distance = sqrt ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    double distance = sqrt ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     return distance;
     }
 
-void PhysicsObject (float* x, float* y, float* vx, float* vy, float ax, float ay, int dt, int radius)
+void PhysicsObject (Ball* ball,  double ax, double ay, int dt)
     {
-   // *vx = *vx + ax * dt;
-   // *vy = *vy + ay * dt;
+    (*ball).vx = (*ball).vx + ax * dt;
+    (*ball).vy = (*ball).vy + ay * dt;
 
-    *x = *x + *vx * dt;
-    *y = *y + *vy * dt;
+    (*ball).x = (*ball).x + (*ball).vx * dt;
+    (*ball).y = (*ball).y + (*ball).vy * dt;
 
-    if (*x >= 800 - radius)
+    if ((*ball).x >= 800 - (*ball).radius)
         {
-        *vx = - *vx;
-        *x  = 800 - radius;
+        (*ball).vx = - (*ball).vx;
+        (*ball).x  = 800 - (*ball).radius;
         }
 
-    if (*y >= 600 - radius)
+    if ((*ball).y >= 600 - (*ball).radius)
         {
-        *vy = - *vy;
-        *y  = 600 - radius;
+        (*ball).vy = - (*ball).vy;
+        (*ball).y  = 600 - (*ball).radius;
         }
 
-    if (*x <= 0 + radius)
+    if ((*ball).x <= 0 + (*ball).radius)
         {
-        *vx = - *vx;
-        *x  = 0 + radius;
+        (*ball).vx = - (*ball).vx;
+        (*ball).x  = 0 + (*ball).radius;
         }
 
-    if (*y <= 0 + radius)
+    if ((*ball).y <= 0 + (*ball).radius)
         {
-        *vy = - *vy;
-        *y  = 0 + radius;
+        (*ball).vy = - (*ball).vy;
+        (*ball).y  = 0 + (*ball).radius;
         }
     }
 
-void ControlCollision (float* x1, float* y1, float* x2, float* y2,
-                       float* vx1, float* vy1, float* vx2, float* vy2,
-                       int radius, int dt, int* collisions)
+void ControlCollision (Ball* ball1, Ball* ball2, int dt, int* collisions)
     {
-    float distance = Distance (*x1, *y1, *x2, *y2); if (distance == 0) distance = 0.01;
-    float angle_sin = (*x1 - *x2)/distance;
-    float angle_cos = (*y1 - *y2)/distance;
+    double distance = Distance ((*ball1).x, (*ball1).y, (*ball2).x, (*ball2).y); if (distance == 0) distance = 0.01;
 
-      	if (distance < 2*radius)
-            {
-      		float Vn1 = *vx2*angle_sin + *vy2*angle_cos;
+    double angle_sin = ((*ball1).x - (*ball2).x)/distance;
+    double angle_cos = ((*ball1).y - (*ball2).y)/distance;
 
-      		float Vn2 = *vx1*angle_sin + *vy1*angle_cos;
+    if (distance < ((*ball1).radius + (*ball2).radius))
+        {
+        double Vn1 = (*ball2).vx*angle_sin + (*ball2).vy*angle_cos;
 
-      		float dt = (2*radius - distance)/(Vn1 - Vn2);
+        double Vn2 = (*ball1).vx*angle_sin + (*ball1).vy*angle_cos;
 
-      		float Vt1 = -*vx2*angle_cos + *vy2*angle_sin;
+        double dt  = (((*ball1).radius + (*ball2).radius) - distance)/(Vn1 - Vn2);
 
-      		float Vt2 = -*vx1*angle_cos + *vy1*angle_sin;
+        double Vt1 = - (*ball2).vx*angle_cos + (*ball2).vy*angle_sin;
 
-      		float temp = Vn2;
-      		Vn2 = Vn1;
-      		Vn1 = temp;
+        double Vt2 = - (*ball1).vx*angle_cos + (*ball1).vy*angle_sin;
 
-      		*vx1 = Vn2*angle_sin - Vt2*angle_cos;
+        double temp = Vn2;
+        Vn2 = Vn1;
+        Vn1 = temp;
 
-      		*vy1 = Vn2*angle_cos + Vt2*angle_sin;
+        (*ball1).vx = Vn2*angle_sin - Vt2*angle_cos;
 
-      		*vx2 = Vn1*angle_sin - Vt1*angle_cos;
+        (*ball1).vy = Vn2*angle_cos + Vt2*angle_sin;
 
-      		*vy2 = Vn1*angle_cos + Vt1*angle_sin;
+        (*ball2).vx = Vn1*angle_sin - Vt1*angle_cos;
 
-      		*x1 += *vx1*dt;
-      		*y1 += *vy1*dt;
-      		*x2 += *vx2*dt;
-      		*y2 += *vy2*dt;
+        (*ball2).vy = Vn1*angle_cos + Vt1*angle_sin;
 
-      		*collisions += 1;
-            }
+        (*ball1).x +=  (*ball1).vx*dt;
+        (*ball1).y +=  (*ball1).vy*dt;
+        (*ball2).x +=  (*ball2).vx*dt;
+        (*ball2).y +=  (*ball2).vy*dt;
+
+        *collisions += 1;
+        }
     }
 
-void ControlObject (float* vx, float* vy)
+void ControlObject (Ball* ball1)
     {
-    if (txGetAsyncKeyState (VK_RIGHT)) *vx = *vx + 1;
-    if (txGetAsyncKeyState (VK_LEFT))  *vx = *vx - 1;
-    if (txGetAsyncKeyState (VK_UP))    *vy = *vy - 1;
-    if (txGetAsyncKeyState (VK_DOWN))  *vy = *vy + 1;
-    if (txGetAsyncKeyState (VK_SPACE)) *vx = *vy = 0;
+    if (txGetAsyncKeyState (VK_RIGHT)) (*ball1).vx = (*ball1).vx + 1;
+    if (txGetAsyncKeyState (VK_LEFT))  (*ball1).vx = (*ball1).vx - 1;
+    if (txGetAsyncKeyState (VK_UP))    (*ball1).vy = (*ball1).vy - 1;
+    if (txGetAsyncKeyState (VK_DOWN))  (*ball1).vy = (*ball1).vy + 1;
+    if (txGetAsyncKeyState (VK_SPACE)) (*ball1).vx = (*ball1).vy = 0;
     }
 
-void OutputScore(int* collisions)
+void OutputScore (int collisions)
     {
     txSetColor (TX_YELLOW);
     txSetFillColor (TX_YELLOW);
 
-    txSelectFont ("Times", 80);
+    txSelectFont ("Times", 50);
     char strx[20] = " ";
-    sprintf (strx, "collisions =% d", *collisions);
+    sprintf (strx, "collisions =% d", collisions);
 
-    int centerx = 220;
+    int centerx = 20;
     int centery = 500;
 
     txTextOut (centerx, centery, strx);
+    }
+
+void OutputCoordinates (Ball ball1, Ball ball2)
+    {
+    char strx1 [20] = "";
+    char stry1 [20] = "";
+    char strx2 [20] = "";
+    char stry2 [20] = "";
+    sprintf (strx1, "coordinate X1 =% d", ROUND (ball1.x));
+    sprintf (stry1, "coordinate Y1 =% d", ROUND (ball1.y));
+
+    sprintf (strx2, "coordinate X2 =% d", ROUND (ball2.x));
+    sprintf (stry2, "coordinate Y2 =% d", ROUND (ball2.y));
+
+
+    txSelectFont ("Comic Sans MS", 30);
+
+    txTextOut (20, 100, strx1);
+    txTextOut (20, 150, stry1);
+
+    txTextOut (20, 300, strx2);
+    txTextOut (20, 350, stry2);
     }
