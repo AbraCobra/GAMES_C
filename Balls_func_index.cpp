@@ -186,14 +186,15 @@ void OutputCoordinates (Ball ball1, Ball ball2)
     {
     char strx1 [20] = "";
     char stry1 [20] = "";
+
     char strx2 [20] = "";
     char stry2 [20] = "";
+
     sprintf (strx1, "coordinate X1 =% d", ROUND (ball1.x));
     sprintf (stry1, "coordinate Y1 =% d", ROUND (ball1.y));
 
     sprintf (strx2, "coordinate X2 =% d", ROUND (ball2.x));
     sprintf (stry2, "coordinate Y2 =% d", ROUND (ball2.y));
-
 
     txSelectFont ("Comic Sans MS", 30);
 
