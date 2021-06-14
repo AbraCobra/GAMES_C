@@ -48,7 +48,6 @@ void MovingObject()
         DrawObject (ball1);
         DrawObject (ball2);
 
-
         PhysicsObject (&ball1, ax, ay, dt);
         PhysicsObject (&ball2, ax, ay, dt);
 
