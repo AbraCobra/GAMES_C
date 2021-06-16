@@ -2,6 +2,13 @@
 #include <cmath>
 
 
+struct Button
+    {
+    int key_left, key_right;
+    int key_up,  key_down;
+    };
+
+
 struct Ball
    {
     double  x,  y,
@@ -10,18 +17,10 @@ struct Ball
 
     void PhysicsObject (double ax, double ay, int dt);
     void DrawObject ();
+    void ControlObject (Button player);
     };
-
-struct Button
-    {
-    int key_left, key_right;
-    int key_up,  key_down;
-    };
-
-
 
 void MovingObject();
-void ControlObject     (Ball* ball, Button player);
 void ControlCollision  (Ball* ball1, Ball* ball2, int* collisions);
 double Distance        (double x1, double y1, double x2, double y2);
 void OutputScore       (int  collisions);
@@ -52,7 +51,6 @@ void MovingObject()
     int dt = 1,  collisions  = 0;
 
     double ax = 0, ay = 0;
-    //unsigned long Time = 10000;
 
     while (!txGetAsyncKeyState (VK_ESCAPE))
         {
@@ -66,8 +64,8 @@ void MovingObject()
 
         ControlCollision (&ball1, &ball2, &collisions);
 
-        ControlObject (&ball1, player1);
-        ControlObject (&ball2, player2);
+        ball1.ControlObject (player1);
+        ball2.ControlObject (player2);
 
         OutputScore (collisions);
 
@@ -171,13 +169,13 @@ void ControlCollision (Ball* ball1, Ball* ball2, int* collisions)
         }
     }
 
-void ControlObject (Ball* ball, Button player)
+void Ball::ControlObject (Button player)
     {
-    if (txGetAsyncKeyState (player.key_left))  (*ball).vx = (*ball).vx + 1;
-    if (txGetAsyncKeyState (player.key_right)) (*ball).vx = (*ball).vx - 1;
-    if (txGetAsyncKeyState (player.key_up))    (*ball).vy = (*ball).vy - 1;
-    if (txGetAsyncKeyState (player.key_down))  (*ball).vy = (*ball).vy + 1;
-    if (txGetAsyncKeyState (VK_SPACE))         (*ball).vx = (*ball).vy = 0;
+    if (txGetAsyncKeyState (player.key_left))  vx = vx + 1;
+    if (txGetAsyncKeyState (player.key_right)) vx = vx - 1;
+    if (txGetAsyncKeyState (player.key_up))    vy = vy - 1;
+    if (txGetAsyncKeyState (player.key_down))  vy = vy + 1;
+    if (txGetAsyncKeyState (VK_SPACE))         vx = vy = 0;
     }
 
 void OutputScore (int collisions)
