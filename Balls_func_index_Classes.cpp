@@ -7,6 +7,9 @@ struct Ball
     double  x,  y,
            vx, vy;
     int radius;
+
+    void PhysicsObject (double ax, double ay, int dt);
+    void DrawObject ();
     };
 
 struct Button
@@ -18,8 +21,6 @@ struct Button
 
 
 void MovingObject();
-void DrawObject        (Ball  ball);
-void PhysicsObject     (Ball* ball, double ax, double ay, int dt);
 void ControlObject     (Ball* ball, Button player);
 void ControlCollision  (Ball* ball1, Ball* ball2, int* collisions);
 double Distance        (double x1, double y1, double x2, double y2);
@@ -41,7 +42,7 @@ void MovingObject()
     {
     HDC  background_Cartoon = txLoadImage ("bush.bmp");
 
-    Ball ball1 = {10, 10, 8, 8, 55};
+    Ball ball1 = {10, 10,  8,  8, 55};
 
     Ball ball2 = {20, 20, 10, 10, 50};
 
@@ -51,16 +52,17 @@ void MovingObject()
     int dt = 1,  collisions  = 0;
 
     double ax = 0, ay = 0;
+    //unsigned long Time = 10000;
 
     while (!txGetAsyncKeyState (VK_ESCAPE))
         {
         txBitBlt  (txDC(), 0, 0, 800, 600, background_Cartoon, 0, 0);
 
-        DrawObject (ball1);
-        DrawObject (ball2);
+        ball1.DrawObject ();
+        ball2.DrawObject ();
 
-        PhysicsObject (&ball1, ax, ay, dt);
-        PhysicsObject (&ball2, ax, ay, dt);
+        ball1.PhysicsObject (ax, ay, dt);
+        ball2.PhysicsObject (ax, ay, dt);
 
         ControlCollision (&ball1, &ball2, &collisions);
 
@@ -77,17 +79,17 @@ void MovingObject()
     txDeleteDC (background_Cartoon);
     }
 
-void DrawObject (Ball ball)
+void Ball::DrawObject ()
     {
     int a = 100, b = 200;
 
-    for (int i = 1; i <= ball.radius; i++)
+    for (int i = 1; i <= radius; i++)
         {
         txSetColor     (RGB (a + i, b + i/2, b + i/2), 2);
         txSetFillColor (RGB (a + i, b + i/2, b + i/2));
-        txCircle (ball.x, ball.y, ball.radius - i);
+        txCircle (x, y, radius - i);
         }
-    //txLine   (ball.x, ball.y, ball.x + (ball.vx)*7, ball.y + (ball.vy)*7);
+    //txLine   (x, y, x + vx*7, y + vy*7);
     }
 
 double Distance (double x1, double y1, double x2, double y2)
@@ -96,36 +98,36 @@ double Distance (double x1, double y1, double x2, double y2)
     return distance;
     }
 
-void PhysicsObject (Ball* ball,  double ax, double ay, int dt)
+void Ball::PhysicsObject (double ax, double ay, int dt)
     {
-    (*ball).vx = (*ball).vx + ax * dt;
-    (*ball).vy = (*ball).vy + ay * dt;
+    vx = vx + ax * dt;
+    vy = vy + ay * dt;
 
-    (*ball).x = (*ball).x + (*ball).vx * dt;
-    (*ball).y = (*ball).y + (*ball).vy * dt;
+    x = x + vx * dt;
+    y = y + vy * dt;
 
-    if ((*ball).x >= 800 - (*ball).radius)
+    if (x >= 800 - radius)
         {
-        (*ball).vx = - (*ball).vx;
-        (*ball).x  = 800 - (*ball).radius;
+        vx = - vx;
+         x  = 800 - radius;
         }
 
-    if ((*ball).y >= 600 - (*ball).radius)
+    if (y >= 600 - radius)
         {
-        (*ball).vy = - (*ball).vy;
-        (*ball).y  = 600 - (*ball).radius;
+        vy = - vy;
+        y  = 600 - radius;
         }
 
-    if ((*ball).x <= 0 + (*ball).radius)
+    if (x <= 0 + radius)
         {
-        (*ball).vx = - (*ball).vx;
-        (*ball).x  = 0 + (*ball).radius;
+        vx = - vx;
+        x  = 0 + radius;
         }
 
-    if ((*ball).y <= 0 + (*ball).radius)
+    if (y <= 0 + radius)
         {
-        (*ball).vy = - (*ball).vy;
-        (*ball).y  = 0 + (*ball).radius;
+        vy = - vy;
+        y  = 0 + radius;
         }
     }
 
@@ -175,7 +177,7 @@ void ControlObject (Ball* ball, Button player)
     if (txGetAsyncKeyState (player.key_right)) (*ball).vx = (*ball).vx - 1;
     if (txGetAsyncKeyState (player.key_up))    (*ball).vy = (*ball).vy - 1;
     if (txGetAsyncKeyState (player.key_down))  (*ball).vy = (*ball).vy + 1;
-    if (txGetAsyncKeyState (VK_SPACE))  (*ball).vx = (*ball).vy = 0;
+    if (txGetAsyncKeyState (VK_SPACE))         (*ball).vx = (*ball).vy = 0;
     }
 
 void OutputScore (int collisions)
